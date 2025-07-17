@@ -190,7 +190,7 @@ namespace HRM.WEB.Controllers
 
 
         [HttpPut("{id}")]
-        public async Task<IActionResult> UpdateEmployee(int id, UpdateEmployeeDTO updateDto)
+        public async Task<IActionResult> UpdateEmployee(int id, UpdateEmployeeDto updateDto)
         {
             if (id != updateDto.Id)
                 return BadRequest("ID in URL and payload do not match.");
