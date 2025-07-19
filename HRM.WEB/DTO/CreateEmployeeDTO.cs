@@ -32,5 +32,7 @@ namespace HRM.WEB.DTO
 
         public List<EmployeeDocumentDTO> Documents { get; set; } = new();
 
+       
+
     }
 }
