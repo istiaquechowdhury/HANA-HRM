@@ -1,4 +1,6 @@
-﻿namespace HRM.WEB.DTO
+﻿using HRM.WEB.ChildEntitiesDTO;
+
+namespace HRM.WEB.DTO
 {
     public class CreateEmployeeDTO
     {
@@ -27,5 +29,8 @@
         public int? IdMaritalStatus { get; set; }
         public bool? IsActive { get; set; }
         public string? CreatedBy { get; set; }
+
+        public List<EmployeeDocumentDTO> Documents { get; set; } = new();
+
     }
 }

@@ -170,7 +170,107 @@ namespace HRM.WEB.Controllers
                 IsActive = createDto.IsActive ?? true,
                 CreatedBy = createDto.CreatedBy,
                 SetDate = DateTime.UtcNow,
-                IdClient = 10001001 // Default client ID
+                IdClient = 10001001,
+                EmployeeDocuments = new List<EmployeeDocument>
+                {
+                    new EmployeeDocument
+                    {
+                            DocumentName = "whatever",
+                            FileName = "file.pdf",
+                            UploadDate = DateTime.UtcNow,
+                            UploadedFileExtention = ".pdf",
+                            UploadedFile = Convert.FromBase64String("U29tZSBmaWxlIGNvbnRlbnQ="), // optional
+                            SetDate = DateTime.UtcNow,
+                            CreatedBy = createDto.CreatedBy,
+                            IdClient = 10001001
+                    },
+
+                    new EmployeeDocument
+                    {
+                        DocumentName = "testingphase",
+                        FileName = "testing.pdf",
+                        UploadDate = DateTime.Now,
+                        UploadedFileExtention = ".pdf",
+                        UploadedFile = Convert.FromBase64String("U29tZSBmaWxlIGNvbnRlbnQ="), // optional
+                        SetDate = DateTime.UtcNow,
+                        CreatedBy = createDto.CreatedBy,
+                        IdClient = 10001001
+                    }
+                },
+
+                EmployeeEducationInfos = new List<EmployeeEducationInfo>
+                {
+                    new EmployeeEducationInfo
+                    {
+                        IdEducationLevel = 1,
+                        IdEducationExamination = 2,
+                        IdEducationResult = 3,
+                        Cgpa = 3.75m,
+                        ExamScale = 4.00m,
+                        Marks = null,
+                        Major = "Computer Science",
+                        PassingYear = 2018,
+                        InstituteName = "University of Dhaka",
+                        IsForeignInstitute = false,
+                        Duration = 4,
+                        Achievement = "Dean's List",
+                        CreatedBy = createDto.CreatedBy,
+                        SetDate = DateTime.UtcNow,
+                        IdClient = 10001001
+                    },
+                    new EmployeeEducationInfo
+                    {
+                        IdEducationLevel = 2,
+                        IdEducationExamination = 3,
+                        IdEducationResult = 4,
+                        Cgpa = 3.75m,
+                        ExamScale = 4.00m,
+                        Marks = null,
+                        Major = "Software Engineering",
+                        PassingYear = 2018,
+                        InstituteName = "Daffodil International University",
+                        IsForeignInstitute = false,
+                        Duration = 4,
+                        Achievement = "Dean's List",
+                        CreatedBy = createDto.CreatedBy,
+                        SetDate = DateTime.UtcNow,
+                        IdClient = 10001001
+                    }
+
+
+                },
+
+                EmployeeProfessionalCertifications = new List<EmployeeProfessionalCertification>
+                {
+                    new EmployeeProfessionalCertification
+                    {
+                        CertificationTitle = "PMP",
+                        CertificationInstitute = "PMI",
+                        InstituteLocation = "USA",
+                        FromDate = new DateTime(2020, 1, 1),
+                        ToDate = new DateTime(2023, 1, 1),
+                        SetDate = DateTime.UtcNow,
+                        CreatedBy = createDto.CreatedBy,
+                        IdClient = 10001001
+                    },
+
+                     new EmployeeProfessionalCertification
+                    {
+                        CertificationTitle = "mp",
+                        CertificationInstitute = "npm",
+                        InstituteLocation = "UK",
+                        FromDate = new DateTime(2020, 1, 1),
+                        ToDate = new DateTime(2023, 1, 1),
+                        SetDate = DateTime.UtcNow,
+                        CreatedBy = createDto.CreatedBy,
+                        IdClient = 10001001
+                    }
+                },
+
+
+
+
+
             };
 
             _appDbContext.Employees.Add(employee);

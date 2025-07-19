@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-
-namespace HRM.WEB.Models;
+﻿namespace HRM.WEB.Models;
 
 public partial class EmployeeEducationInfo
 {
