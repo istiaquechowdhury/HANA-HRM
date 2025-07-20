@@ -180,6 +180,17 @@ public partial class AppDbContext : DbContext
             entity.HasOne(d => d.WeekOff).WithMany(p => p.Employees)
                 .HasForeignKey(d => new { d.IdClient, d.IdWeekOff })
                 .HasConstraintName("FK_Employee_WeekOff");
+
+
+            entity.HasOne(e => e.ReportingManager)
+                .WithMany()
+                .HasForeignKey(e => new { e.IdClient, e.IdReportingManager })
+                .HasConstraintName("FK_Employee_ReportingManager");
+
+
+
+
+
         });
 
         modelBuilder.Entity<EmployeeDocument>(entity =>

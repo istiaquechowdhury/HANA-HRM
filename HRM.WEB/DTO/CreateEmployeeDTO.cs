@@ -32,7 +32,14 @@ namespace HRM.WEB.DTO
 
         public List<EmployeeDocumentDTO> Documents { get; set; } = new();
 
-       
+        public List<EmployeeEducationInfosDTO> EducationInfos { get; set;} = new();
+
+        public List<EmployeeProfessionalCertificationDTO> ProfessionalCertification { get; set; } = new();
+
+
+
+
+
 
     }
 }

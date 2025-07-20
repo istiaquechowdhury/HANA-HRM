@@ -81,4 +81,6 @@ public partial class Employee
     public virtual Section Section { get; set; } = null!;
 
     public virtual WeekOff? WeekOff { get; set; }
+
+    public virtual Employee? ReportingManager { get; set; }
 }

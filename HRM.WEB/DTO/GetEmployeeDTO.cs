@@ -1,4 +1,6 @@
-﻿namespace HRM.WEB.DTO
+﻿using HRM.WEB.ChildEntitiesDTO;
+
+namespace HRM.WEB.DTO
 {
     public class GetEmployeeDTO
     {
@@ -52,5 +54,10 @@
         public DateTime? SetDate { get; set; }
 
         public byte[]? EmployeeImage { get; set; }
+
+
+        public List<EmployeeDocumentDTO> EmployeeDocuments { get; set; } = new();
+        public List<EmployeeEducationInfosDTO> EmployeeEducationInfos { get; set; } = new();
+        public List<EmployeeProfessionalCertificationDTO> EmployeeProfessionalCertifications { get; set; } = new();
     }
 }
