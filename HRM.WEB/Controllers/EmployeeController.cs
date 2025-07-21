@@ -150,7 +150,7 @@ namespace HRM.WEB.Controllers
                     IdWeekOff = e.IdWeekOff,
                     WeekOffDay = e.WeekOff != null ? e.WeekOff.WeekOffDay : null,
                     IdReportingManager = e.IdReportingManager,
-                    ReportingManagerName = e.ReportingManager != null ? e.ReportingManager.EmployeeName : null,  
+                    ReportingManagerName = e.ReportingManager != null ? e.ReportingManager.EmployeeName : null,
 
                     CreatedBy = e.CreatedBy,
                     SetDate = e.SetDate,
@@ -201,6 +201,7 @@ namespace HRM.WEB.Controllers
         public async Task<ActionResult<GetEmployeeDTO>> GetEmployeeById(int id)
         {
             var employee = await _appDbContext.Employees
+                .AsNoTracking()
                 .Where(e => e.IdClient == 10001001 && e.Id == id)
                 .Select(e => new GetEmployeeDTO
                 {
@@ -396,7 +397,7 @@ namespace HRM.WEB.Controllers
 
 
 
-        
+
 
 
         [HttpPut]
@@ -516,10 +517,47 @@ namespace HRM.WEB.Controllers
             return Ok(new { message = "Employee soft deleted (deactivated) successfully." });
 
 
-
-
-
         }
+
+
+
+
+        [HttpPost("UploadImage/{employeeId}")]
+        public async Task<IActionResult> UploadImage(int employeeId, IFormFile file)
+        {
+            if (file == null || file.Length == 0)
+                return BadRequest("No file uploaded.");
+
+            using var memoryStream = new MemoryStream();
+            await file.CopyToAsync(memoryStream);
+            byte[] imageBytes = memoryStream.ToArray();
+
+            var employee = await _appDbContext.Employees.FindAsync(10001001,employeeId);
+            if (employee == null)
+                return NotFound("Employee not found.");
+
+            employee.EmployeeImage = imageBytes;
+            await _appDbContext.SaveChangesAsync();
+
+            return Ok("Image uploaded successfully.");
+        }
+
+
+
+        [HttpGet("GetImage/{employeeId}")]
+        public async Task<IActionResult> GetImage(int employeeId)
+        {
+            var employee = await _appDbContext.Employees.FindAsync(10001001, employeeId);
+            if (employee == null)
+                return NotFound("Employee not found.");
+
+            if (employee.EmployeeImage == null || employee.EmployeeImage.Length == 0)
+                return NotFound("No image found for this employee.");
+
+            // Hardcoded MIME type as PNG for now
+            return File(employee.EmployeeImage, "image/jpg");
+        }
+
 
 
 
