@@ -36,7 +36,6 @@ namespace HRM.WEB.DTO
 
         public List<EmployeeProfessionalCertificationDTO> ProfessionalCertification { get; set; } = new();
 
-        public int MyProperty { get; set; }
 
 
 
