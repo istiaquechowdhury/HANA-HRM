@@ -295,6 +295,14 @@ namespace HRM.WEB.Controllers
         [HttpPost]
         public async Task<ActionResult<Employee>> CreateEmployee(CreateEmployeeDTO createDto)
         {
+            //byte[] imageBytes = null;
+            //if (createDto.EmployeeImage != null && createDto.EmployeeImage.Length > 0)
+            //{
+            //    using var ms = new MemoryStream();
+            //    await createDto.EmployeeImage.CopyToAsync(ms);
+            //    imageBytes = ms.ToArray();
+            //}
+
 
             var employee = new Employee
             {
