@@ -4,6 +4,7 @@ namespace HRM.WEB.DTO
 {
     public class UpdateEmployeeDto
     {
+        public int IdClient { get; set; }       
         public int Id { get; set; }
         public string? EmployeeName { get; set; }
         public string? EmployeeNameBangla { get; set; }

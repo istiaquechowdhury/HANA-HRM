@@ -2,6 +2,8 @@
 {
     public class EmployeeEducationInfosDTO
     {
+        public int IdClient { get; set; }
+        public int Id { get; set; }
         public int IdEducationLevel { get; set; }
         public int IdEducationExamination { get; set; }
         public int IdEducationResult { get; set; }
