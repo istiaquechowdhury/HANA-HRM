@@ -145,7 +145,8 @@ public partial class AppDbContext : DbContext
 
             entity.HasOne(d => d.Department).WithMany(p => p.Employees)
                 .HasForeignKey(d => new { d.IdClient, d.IdDepartment })
-                .OnDelete(DeleteBehavior.ClientSetNull)
+                //.OnDelete(DeleteBehavior.ClientSetNull)
+                .OnDelete(DeleteBehavior.Cascade)
                 .HasConstraintName("FK_Employee_Department");
 
             entity.HasOne(d => d.Designation).WithMany(p => p.Employees)

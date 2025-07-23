@@ -4,9 +4,10 @@ namespace HRM.WEB.DTO
 {
     public class CreateEmployeeDTO
     {
+       
         public string? EmployeeName { get; set; }
         public string? EmployeeNameBangla { get; set; }
-        public byte[]? EmployeeImage { get; set; }
+        public IFormFile? EmployeeImage { get; set; }
         public string? FatherName { get; set; }
         public string? MotherName { get; set; }
         public int? IdReportingManager { get; set; }

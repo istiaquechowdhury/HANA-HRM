@@ -5,19 +5,16 @@ using Microsoft.EntityFrameworkCore;
 
 namespace HRM.WEB.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("api/baseentities")]
     [ApiController]
-    public class BaseEntitiesController : ControllerBase
+    public class BaseEntitiesController(AppDbContext appDbContext) : ControllerBase
     {
-        private readonly AppDbContext _appDbContext;
+        private readonly AppDbContext _appDbContext = appDbContext; 
 
-        public BaseEntitiesController(AppDbContext appDbContext)
-        {
-            _appDbContext = appDbContext;
-        }
+       
 
 
-        [HttpGet("reporting-managers")]
+        [HttpGet("getreportingmanagers")]
         public async Task<ActionResult<IEnumerable<BaseDropdownDto>>> GetReportingManagers()
         {
             var managers = await _appDbContext.Employees
@@ -33,7 +30,7 @@ namespace HRM.WEB.Controllers
         }
 
 
-        [HttpGet("job-types")]
+        [HttpGet("getjobtypes")]
         public async Task<ActionResult<IEnumerable<BaseDropdownDto>>> GetJobTypes()
         {
             var jobTypes = await _appDbContext.JobTypes
@@ -51,7 +48,7 @@ namespace HRM.WEB.Controllers
 
 
 
-        [HttpGet("employee-types")]
+        [HttpGet("getemployeetypes")]
         public async Task<ActionResult<IEnumerable<BaseDropdownDto>>> GetEmployeeTypes()
         {
             var types = await _appDbContext.EmployeeTypes
@@ -67,7 +64,7 @@ namespace HRM.WEB.Controllers
         }
 
 
-        [HttpGet("genders")]
+        [HttpGet("getgenders")]
         public async Task<ActionResult<IEnumerable<BaseDropdownDto>>> GetGenders()
         {
             var genders = await _appDbContext.Genders
@@ -85,7 +82,7 @@ namespace HRM.WEB.Controllers
 
 
 
-        [HttpGet("religions")]
+        [HttpGet("getreligions")]
         public async Task<ActionResult<IEnumerable<BaseDropdownDto>>> GetReligions()
         {
             var religions = await _appDbContext.Religions
@@ -102,7 +99,7 @@ namespace HRM.WEB.Controllers
 
 
 
-        [HttpGet("departments")]
+        [HttpGet("getdepartments")]
         public async Task<ActionResult<IEnumerable<BaseDropdownDto>>> GetDepartments()
         {
             var departments = await _appDbContext.Departments
@@ -120,7 +117,7 @@ namespace HRM.WEB.Controllers
 
 
 
-        [HttpGet("sections")]
+        [HttpGet("getsections")]
         public async Task<ActionResult<IEnumerable<BaseDropdownDto>>> GetSections()
         {
             var sections = await _appDbContext.Sections
@@ -136,7 +133,7 @@ namespace HRM.WEB.Controllers
         }
 
 
-        [HttpGet("designations")]
+        [HttpGet("getdesignations")]
         public async Task<ActionResult<IEnumerable<BaseDropdownDto>>> GetDesignations()
         {
             var designations = await _appDbContext.Designations
@@ -153,7 +150,7 @@ namespace HRM.WEB.Controllers
 
 
 
-        [HttpGet("weekoffs")]
+        [HttpGet("getweekoffs")]
         public async Task<ActionResult<IEnumerable<BaseDropdownDto>>> GetWeekOffs()
         {
             var weekOffs = await _appDbContext.WeekOffs
@@ -171,7 +168,7 @@ namespace HRM.WEB.Controllers
 
 
 
-        [HttpGet("marital-statuses")]
+        [HttpGet("getmaritalstatuses")]
         public async Task<ActionResult<IEnumerable<BaseDropdownDto>>> GetMaritalStatuses()
         {
             var statuses = await _appDbContext.MaritalStatuses

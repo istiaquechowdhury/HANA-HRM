@@ -10,6 +10,16 @@
 
         public DateTime UploadDate { get; set; }
         public string? UploadedFileExtention { get; set; }
-        public byte[]? UploadedFile { get; set; }
+
+        [Newtonsoft.Json.JsonIgnore]
+        [System.Text.Json.Serialization.JsonIgnore]
+        public IFormFile? UploadedFile { get; set; }
+
+        public byte[]? UploadedFileBytes { get; set; }
+
+        // public string? UploadedFileBase64 { get; set; }
+
+        public string? UploadedFileBase64 { get; set; }
+
     }
 }

@@ -19,6 +19,8 @@ namespace HRM.WEB.DTO
         public bool? HasAttendenceBonus { get; set; }
         public bool? IsActive { get; set; }
 
+        public string? EmployeeImageExtension { get; set; }
+
         // Foreign key lookups
         public int IdDepartment { get; set; }
         public string? DepartmentName { get; set; }
@@ -53,7 +55,8 @@ namespace HRM.WEB.DTO
         public string? CreatedBy { get; set; }
         public DateTime? SetDate { get; set; }
 
-        public byte[]? EmployeeImage { get; set; }
+        public string? EmployeeImageBase64 { get; set; }
+
 
 
         public List<EmployeeDocumentDTO> EmployeeDocuments { get; set; } = new();
