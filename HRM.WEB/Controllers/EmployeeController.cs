@@ -4,7 +4,6 @@ using HRM.WEB.DTO;
 using HRM.WEB.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using System.Threading;
 
 namespace HRM.WEB.Controllers
 {
