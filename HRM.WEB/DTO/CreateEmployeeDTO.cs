@@ -5,6 +5,7 @@ namespace HRM.WEB.DTO
     public class CreateEmployeeDTO
     {
        
+        public int IdClient { get; set; }   
         public string? EmployeeName { get; set; }
         public string? EmployeeNameBangla { get; set; }
         public IFormFile? EmployeeImage { get; set; }

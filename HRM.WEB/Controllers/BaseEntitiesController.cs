@@ -9,20 +9,19 @@ namespace HRM.WEB.Controllers
     [ApiController]
     public class BaseEntitiesController(AppDbContext appDbContext) : ControllerBase
     {
-        private readonly AppDbContext _appDbContext = appDbContext; 
 
        
 
 
-        [HttpGet("getreportingmanagers")]
-        public async Task<ActionResult<IEnumerable<BaseDropdownDto>>> GetReportingManagers()
+        [HttpGet("reportingmanagersdropdown")]
+        public async Task<ActionResult<IEnumerable<BaseDropdownDto>>> GetReportingManagers([FromQuery] int IdClient)
         {
-            var managers = await _appDbContext.Employees
-                .Where(e => e.IdClient == 10001001 && e.IsActive == true)
+            var managers = await appDbContext.Employees
+                .Where(e => e.IdClient == IdClient && e.IsActive == true)
                 .Select(e => new BaseDropdownDto
                 {
                     Id = e.Id,
-                    Name = e.EmployeeName ?? ""
+                    Text = e.EmployeeName ?? ""
                 })
                 .ToListAsync();
 
@@ -30,15 +29,15 @@ namespace HRM.WEB.Controllers
         }
 
 
-        [HttpGet("getjobtypes")]
-        public async Task<ActionResult<IEnumerable<BaseDropdownDto>>> GetJobTypes()
+        [HttpGet("jobtypesdropdown")]
+        public async Task<ActionResult<IEnumerable<BaseDropdownDto>>> GetJobTypes([FromQuery] int IdClient)
         {
-            var jobTypes = await _appDbContext.JobTypes
-                .Where(j => j.IdClient == 10001001)
+            var jobTypes = await appDbContext.JobTypes
+                .Where(j => j.IdClient == IdClient)
                 .Select(j => new BaseDropdownDto
                 {
                     Id = j.Id,
-                    Name = j.JobTypeName
+                    Text = j.JobTypeName
                 })
                 .ToListAsync();
 
@@ -48,15 +47,15 @@ namespace HRM.WEB.Controllers
 
 
 
-        [HttpGet("getemployeetypes")]
-        public async Task<ActionResult<IEnumerable<BaseDropdownDto>>> GetEmployeeTypes()
+        [HttpGet("employeetypesdropdown")]
+        public async Task<ActionResult<IEnumerable<BaseDropdownDto>>> GetEmployeeTypes([FromQuery] int IdClient)
         {
-            var types = await _appDbContext.EmployeeTypes
-                .Where(t => t.IdClient == 10001001)
+            var types = await appDbContext.EmployeeTypes
+                .Where(t => t.IdClient == IdClient)
                 .Select(t => new BaseDropdownDto
                 {
                     Id = t.Id,
-                    Name = t.TypeName ?? ""
+                    Text = t.TypeName ?? ""
                 })
                 .ToListAsync();
 
@@ -64,15 +63,15 @@ namespace HRM.WEB.Controllers
         }
 
 
-        [HttpGet("getgenders")]
-        public async Task<ActionResult<IEnumerable<BaseDropdownDto>>> GetGenders()
+        [HttpGet("gendersdropdown")]
+        public async Task<ActionResult<IEnumerable<BaseDropdownDto>>> GetGenders([FromQuery] int IdClient)
         {
-            var genders = await _appDbContext.Genders
-                .Where(g => g.IdClient == 10001001)
+            var genders = await appDbContext.Genders
+                .Where(g => g.IdClient == IdClient)
                 .Select(g => new BaseDropdownDto
                 {
                     Id = g.Id,
-                    Name = g.GenderName ?? ""
+                    Text = g.GenderName ?? ""
                 })
                 .ToListAsync();
 
@@ -82,15 +81,15 @@ namespace HRM.WEB.Controllers
 
 
 
-        [HttpGet("getreligions")]
-        public async Task<ActionResult<IEnumerable<BaseDropdownDto>>> GetReligions()
+        [HttpGet("religionsdropdown")]
+        public async Task<ActionResult<IEnumerable<BaseDropdownDto>>> GetReligions([FromQuery] int IdClient)
         {
-            var religions = await _appDbContext.Religions
-                .Where(r => r.IdClient == 10001001)
+            var religions = await appDbContext.Religions
+                .Where(r => r.IdClient == IdClient)
                 .Select(r => new BaseDropdownDto
                 {
                     Id = r.Id,
-                    Name = r.ReligionName
+                    Text = r.ReligionName
                 })
                 .ToListAsync();
 
@@ -99,15 +98,15 @@ namespace HRM.WEB.Controllers
 
 
 
-        [HttpGet("getdepartments")]
-        public async Task<ActionResult<IEnumerable<BaseDropdownDto>>> GetDepartments()
+        [HttpGet("departmentsdropdown")]
+        public async Task<ActionResult<IEnumerable<BaseDropdownDto>>> GetDepartments([FromQuery] int IdClient)
         {
-            var departments = await _appDbContext.Departments
-                .Where(d => d.IdClient == 10001001)
+            var departments = await appDbContext.Departments
+                .Where(d => d.IdClient == IdClient)
                 .Select(d => new BaseDropdownDto
                 {
                     Id = d.Id,
-                    Name = d.DepartName
+                    Text = d.DepartName
                 })
                 .ToListAsync();
 
@@ -117,15 +116,15 @@ namespace HRM.WEB.Controllers
 
 
 
-        [HttpGet("getsections")]
-        public async Task<ActionResult<IEnumerable<BaseDropdownDto>>> GetSections()
+        [HttpGet("sectionsdropdown")]
+        public async Task<ActionResult<IEnumerable<BaseDropdownDto>>> GetSections([FromQuery] int IdClient)
         {
-            var sections = await _appDbContext.Sections
-                .Where(s => s.IdClient == 10001001)
+            var sections = await appDbContext.Sections
+                .Where(s => s.IdClient == IdClient)
                 .Select(s => new BaseDropdownDto
                 {
                     Id = s.Id,
-                    Name = s.SectionName
+                    Text = s.SectionName
                 })
                 .ToListAsync();
 
@@ -133,15 +132,15 @@ namespace HRM.WEB.Controllers
         }
 
 
-        [HttpGet("getdesignations")]
-        public async Task<ActionResult<IEnumerable<BaseDropdownDto>>> GetDesignations()
+        [HttpGet("designationsdropdown")]
+        public async Task<ActionResult<IEnumerable<BaseDropdownDto>>> GetDesignations([FromQuery] int IdClient)
         {
-            var designations = await _appDbContext.Designations
-                .Where(d => d.IdClient == 10001001 && (d.IsActive == true || d.IsActive == null))
+            var designations = await appDbContext.Designations
+                .Where(d => d.IdClient == IdClient && (d.IsActive == true || d.IsActive == null))
                 .Select(d => new BaseDropdownDto
                 {
                     Id = d.Id,
-                    Name = d.DesignationName
+                    Text = d.DesignationName
                 })
                 .ToListAsync();
 
@@ -150,15 +149,15 @@ namespace HRM.WEB.Controllers
 
 
 
-        [HttpGet("getweekoffs")]
-        public async Task<ActionResult<IEnumerable<BaseDropdownDto>>> GetWeekOffs()
+        [HttpGet("weekoffsdropdown")]
+        public async Task<ActionResult<IEnumerable<BaseDropdownDto>>> GetWeekOffs([FromQuery] int IdClient)
         {
-            var weekOffs = await _appDbContext.WeekOffs
-                .Where(w => w.IdClient == 10001001)
+            var weekOffs = await appDbContext.WeekOffs
+                .Where(w => w.IdClient == IdClient)
                 .Select(w => new BaseDropdownDto
                 {
                     Id = w.Id,
-                    Name = w.WeekOffDay ?? ""
+                    Text = w.WeekOffDay ?? ""
                 })
                 .ToListAsync();
 
@@ -168,15 +167,15 @@ namespace HRM.WEB.Controllers
 
 
 
-        [HttpGet("getmaritalstatuses")]
-        public async Task<ActionResult<IEnumerable<BaseDropdownDto>>> GetMaritalStatuses()
+        [HttpGet("maritalstatusesdropdown")]
+        public async Task<ActionResult<IEnumerable<BaseDropdownDto>>> GetMaritalStatuses([FromQuery] int IdClient)
         {
-            var statuses = await _appDbContext.MaritalStatuses
-                .Where(m => m.IdClient == 10001001)
+            var statuses = await appDbContext.MaritalStatuses
+                .Where(m => m.IdClient == IdClient)
                 .Select(m => new BaseDropdownDto
                 {
                     Id = m.Id,
-                    Name = m.MaritalStatusName
+                    Text = m.MaritalStatusName
                 })
                 .ToListAsync();
 

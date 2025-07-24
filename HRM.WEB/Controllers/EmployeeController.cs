@@ -4,24 +4,24 @@ using HRM.WEB.DTO;
 using HRM.WEB.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using System.Threading;
 
 namespace HRM.WEB.Controllers
 {
     [Route("api/employee")]
     [ApiController]
-    public class EmployeeController(AppDbContext appDbContext) : ControllerBase
+    public class EmployeeController(AppDbContext _appDbContext) : ControllerBase
     {
-        private readonly AppDbContext _appDbContext = appDbContext;
 
 
 
 
-        [HttpGet("getallemployees")]
-        public async Task<ActionResult<IEnumerable<GetEmployeeDTO>>> GetAllEmployees()
+        [HttpGet]
+        public async Task<ActionResult<IEnumerable<GetEmployeeDTO>>> GetAllEmployees([FromQuery] int IdClient, CancellationToken cancellationToken)
         {
             var employees = await _appDbContext.Employees
                 .AsNoTracking()
-                .Where(e => e.IdClient == 10001001)
+                .Where(e => e.IdClient == IdClient && e.IsActive == true)
                 .Select(e => new GetEmployeeDTO
                 {
                     Id = e.Id,
@@ -61,18 +61,15 @@ namespace HRM.WEB.Controllers
 
                     CreatedBy = e.CreatedBy,
                     SetDate = e.SetDate,
-                    EmployeeImageBase64 = e.EmployeeImage != null
-                    ? $"data:image/jpeg;base64,{Convert.ToBase64String(e.EmployeeImage)}"
-                    : null,
+                    EmployeeImageBase64 = ConvertImageToBase64(e.EmployeeImage),
+
 
                     EmployeeDocuments = e.EmployeeDocuments.Select(doc => new EmployeeDocumentDTO
                     {
                         DocumentName = doc.DocumentName,
                         FileName = doc.FileName,
                         UploadedFileExtention = doc.UploadedFileExtention,
-                        UploadedFileBase64 = doc.UploadedFile != null
-                        ? $"data:{GetMimeType(doc.UploadedFileExtention)};base64,{Convert.ToBase64String(doc.UploadedFile)}"
-                        : null
+                        UploadedFileBase64 = ConvertFileToBase64(doc.UploadedFile, doc.UploadedFileExtention),
 
                     }).ToList(),
 
@@ -101,7 +98,7 @@ namespace HRM.WEB.Controllers
                         ToDate = cert.ToDate
                     }).ToList()
                 })
-                .ToListAsync();
+                .ToListAsync(cancellationToken);
 
             return Ok(employees);
         }
@@ -110,12 +107,12 @@ namespace HRM.WEB.Controllers
 
 
 
-        [HttpGet("{id}")]
-        public async Task<ActionResult<GetEmployeeDTO>> GetEmployeeById(int id)
+        [HttpGet]
+        public async Task<ActionResult<GetEmployeeDTO>> GetEmployeeById([FromQuery] int id, [FromQuery] int IdClient, CancellationToken cancellationToken)
         {
             var employee = await _appDbContext.Employees
                 .AsNoTracking()
-                .Where(e => e.IdClient == 10001001 && e.Id == id)
+                .Where(e => e.IdClient == IdClient && e.Id == id)
                 .Select(e => new GetEmployeeDTO
                 {
                     Id = e.Id,
@@ -144,9 +141,7 @@ namespace HRM.WEB.Controllers
                     IsActive = e.IsActive,
                     CreatedBy = e.CreatedBy,
                     SetDate = e.SetDate,
-                    EmployeeImageBase64 = e.EmployeeImage != null
-                        ? $"data:image/jpeg;base64,{Convert.ToBase64String(e.EmployeeImage)}"
-                        : null,
+                    EmployeeImageBase64 = ConvertImageToBase64(e.EmployeeImage),
 
 
 
@@ -157,9 +152,8 @@ namespace HRM.WEB.Controllers
                         DocumentName = doc.DocumentName,
                         FileName = doc.FileName,
                         UploadedFileExtention = doc.UploadedFileExtention,
-                        UploadedFileBase64 = doc.UploadedFile != null
-                        ? $"data:{GetMimeType(doc.UploadedFileExtention)};base64,{Convert.ToBase64String(doc.UploadedFile)}"
-                        : null
+                        UploadedFileBase64 = ConvertFileToBase64(doc.UploadedFile, doc.UploadedFileExtention),
+
                     }).ToList(),
 
                     // Related Education Info
@@ -192,7 +186,7 @@ namespace HRM.WEB.Controllers
                     // Reporting Manager Name from self-reference
                     ReportingManagerName = e.ReportingManager != null ? e.ReportingManager.EmployeeName : null
                 })
-                .FirstOrDefaultAsync();
+                .FirstOrDefaultAsync(cancellationToken);
 
             if (employee == null)
                 return NotFound("Employee not found.");
@@ -211,10 +205,18 @@ namespace HRM.WEB.Controllers
 
 
 
-        [HttpPost("createemployee")]
+        [HttpPost]
 
-        public async Task<ActionResult<Employee>> CreateEmployee([FromForm] CreateEmployeeDTO createDto)
+        public async Task<ActionResult<Employee>> CreateEmployee([FromForm] CreateEmployeeDTO createDto, CancellationToken cancellationToken)
         {
+
+            const long maxFileSize = 10 * 1024 * 1024; 
+
+            // Validate EmployeeImage size
+            if (createDto.EmployeeImage != null && createDto.EmployeeImage.Length > maxFileSize)
+            {
+                return BadRequest("Employee image size cannot be greater than 10 MB.");
+            }
             // Convert Employee image to byte[]
             byte[]? employeeImageBytes = null;
             if (createDto.EmployeeImage != null && createDto.EmployeeImage.Length > 0)
@@ -227,20 +229,24 @@ namespace HRM.WEB.Controllers
             // Convert document files to byte[]
             foreach (var doc in createDto.Documents)
             {
-                if (doc.UploadedFile != null && doc.UploadedFile.Length > 0)
+                if (doc.UploadedFile != null)
                 {
+                    if (doc.UploadedFile.Length > maxFileSize)
+                    {
+                        return BadRequest($"Document '{doc.FileName}' size cannot be greater than 10 MB.");
+                    }
                     using var ms = new MemoryStream();
                     await doc.UploadedFile.CopyToAsync(ms);
                     doc.UploadedFileExtention = Path.GetExtension(doc.UploadedFile.FileName);
                     doc.FileName = Path.GetFileName(doc.UploadedFile.FileName);
-                    doc.UploadDate = DateTime.UtcNow;
-                    doc.UploadedFileBytes = ms.ToArray(); 
+                    doc.UploadDate = DateTime.Now;
+                    doc.UploadedFileBytes = ms.ToArray();
 
                 }
             }
 
 
-           
+
 
 
             var employee = new Employee
@@ -270,8 +276,8 @@ namespace HRM.WEB.Controllers
                 IdMaritalStatus = createDto.IdMaritalStatus,
                 IsActive = createDto.IsActive ?? true,
                 CreatedBy = createDto.CreatedBy,
-                SetDate = DateTime.UtcNow,
-                IdClient = 10001001,
+                SetDate = DateTime.Now,
+                IdClient = createDto.IdClient,
 
                 EmployeeDocuments = createDto.Documents.Select(doc => new EmployeeDocument
                 {
@@ -279,9 +285,9 @@ namespace HRM.WEB.Controllers
                     FileName = doc.FileName,
                     UploadedFileExtention = doc.UploadedFileExtention,
                     UploadedFile = doc.UploadedFileBytes,
-                    SetDate = DateTime.UtcNow,
+                    SetDate = DateTime.Now,
                     CreatedBy = createDto.CreatedBy,
-                    IdClient = 10001001
+                    IdClient = doc.IdClient,
                 }).ToList(),
 
 
@@ -300,9 +306,9 @@ namespace HRM.WEB.Controllers
                     IsForeignInstitute = edu.IsForeignInstitute,
                     Duration = edu.Duration,
                     Achievement = edu.Achievement,
-                    SetDate = DateTime.UtcNow,
+                    SetDate = DateTime.Now,
                     CreatedBy = createDto.CreatedBy,
-                    IdClient = 10001001
+                    IdClient = edu.IdClient,
                 }).ToList(),
 
                 EmployeeProfessionalCertifications = createDto.ProfessionalCertification.Select(cert => new EmployeeProfessionalCertification
@@ -312,9 +318,9 @@ namespace HRM.WEB.Controllers
                     InstituteLocation = cert.InstituteLocation,
                     FromDate = cert.FromDate,
                     ToDate = cert.ToDate,
-                    SetDate = DateTime.UtcNow,
+                    SetDate = DateTime.Now,
                     CreatedBy = createDto.CreatedBy,
-                    IdClient = 10001001
+                    IdClient = cert.IdClient,
                 }).ToList()
 
 
@@ -329,7 +335,7 @@ namespace HRM.WEB.Controllers
 
 
             _appDbContext.Employees.Add(employee);
-            await _appDbContext.SaveChangesAsync();
+            await _appDbContext.SaveChangesAsync(cancellationToken);
 
             return Ok(new { message = "Employee created successfully." });
 
@@ -339,9 +345,9 @@ namespace HRM.WEB.Controllers
         }
 
 
-        [HttpPut("updateemployee")]
+        [HttpPut]
 
-        public async Task<int> UpdateEmployee(UpdateEmployeeDto employee, CancellationToken cancellationToken)
+        public async Task<int> UpdateEmployee([FromForm] UpdateEmployeeDto employee, CancellationToken cancellationToken)
         {
             if (employee == null)
                 throw new Exception($"data not found: {nameof(employee)}");
@@ -382,26 +388,27 @@ namespace HRM.WEB.Controllers
             //delete obsolete data
 
             var deletedEmployeeDocumentList = existingEmployee.EmployeeDocuments
-                .Where(ed => ed.IdClient == ed.IdClient && !employee.Documents.Any(d => d.IdClient == ed.IdClient && d.Id == ed.Id))
+                .Where(ed => !employee.Documents.Any(d => d.IdClient == ed.IdClient && d.Id == ed.Id))
                 .ToList();
-            if (deletedEmployeeDocumentList != null)
+
+            if (deletedEmployeeDocumentList.Any())
             {
                 _appDbContext.EmployeeDocuments.RemoveRange(deletedEmployeeDocumentList);
             }
 
             var deletedEmployeeEducationInfoList = existingEmployee.EmployeeEducationInfos
-                .Where(eei => eei.IdClient == eei.IdClient && !employee.EducationInfos.Any(ei => ei.IdClient == eei.IdClient && ei.Id == eei.Id))
+                .Where(eei =>!employee.EducationInfos.Any(ei => ei.IdClient == eei.IdClient && ei.Id == eei.Id))
                 .ToList();
-            if (deletedEmployeeEducationInfoList != null)
+            if (deletedEmployeeEducationInfoList.Any())
             {
                 _appDbContext.EmployeeEducationInfos.RemoveRange(deletedEmployeeEducationInfoList);
             }
 
             var deletedCertificationList = existingEmployee.EmployeeProfessionalCertifications
-                .Where(epc => epc.IdClient == epc.IdClient && !employee.ProfessionalCertifications.Any(c => c.IdClient == epc.IdClient && c.Id == epc.Id))
+                .Where(epc =>!employee.ProfessionalCertifications.Any(c => c.IdClient == epc.IdClient && c.Id == epc.Id))
                 .ToList();
 
-            if (deletedCertificationList != null)
+            if (deletedCertificationList.Any())
             {
                 _appDbContext.EmployeeProfessionalCertifications.RemoveRange(deletedCertificationList);
             }
@@ -417,7 +424,7 @@ namespace HRM.WEB.Controllers
                     existingEntry.FileName = item.FileName;
                     existingEntry.UploadDate = item.UploadDate;
                     existingEntry.UploadedFileExtention = item.UploadedFileExtention;
-                    existingEntry.SetDate = DateTime.UtcNow;
+                    existingEntry.SetDate = DateTime.Now;
 
                     if (item.UploadedFile != null && item.UploadedFile.Length > 0)
                     {
@@ -436,7 +443,7 @@ namespace HRM.WEB.Controllers
                         FileName = item.FileName,
                         UploadDate = item.UploadDate,
                         UploadedFileExtention = item.UploadedFileExtention,
-                        SetDate = DateTime.UtcNow
+                        SetDate = DateTime.Now
 
 
                     };
@@ -488,7 +495,7 @@ namespace HRM.WEB.Controllers
                         IsForeignInstitute = item.IsForeignInstitute,
                         Duration = item.Duration,
                         Achievement = item.Achievement,
-                        SetDate = DateTime.UtcNow
+                        SetDate = DateTime.Now
                     };
 
                     existingEmployee.EmployeeEducationInfos.Add(newEmployeeEducationInfo);
@@ -525,7 +532,7 @@ namespace HRM.WEB.Controllers
                 }
             }
 
-            var result = await _appDbContext.SaveChangesAsync();
+            var result = await _appDbContext.SaveChangesAsync(cancellationToken);
 
             return result;
         }
@@ -536,7 +543,22 @@ namespace HRM.WEB.Controllers
 
 
 
+        [HttpDelete("{IdClient}/{id}")]
+        public async Task<IActionResult> SoftDeleteEmployee([FromRoute] int IdClient, [FromRoute] int id, CancellationToken cancellationToken)
+        {
+            var employee = await _appDbContext.Employees
+                .FirstOrDefaultAsync(e => e.IdClient == IdClient && e.Id == id);
 
+            if (employee == null)
+                return NotFound("Employee not found.");
+
+            employee.IsActive = false;
+            await _appDbContext.SaveChangesAsync(cancellationToken);
+
+            return Ok(new { message = "Employee soft deleted (deactivated) successfully." });
+
+
+        }
 
 
         private static string GetMimeType(string? extension)
@@ -556,31 +578,29 @@ namespace HRM.WEB.Controllers
             };
         }
 
-
-
-
-
-        [HttpDelete("{id}")]
-        public async Task<IActionResult> SoftDeleteEmployee(int id)
+        private string? ConvertImageToBase64(byte[]? image)
         {
-            var employee = await _appDbContext.Employees
-                .FirstOrDefaultAsync(e => e.IdClient == 10001001 && e.Id == id);
-
-            if (employee == null)
-                return NotFound("Employee not found.");
-
-            employee.IsActive = false;
-            await _appDbContext.SaveChangesAsync();
-
-            return Ok(new { message = "Employee soft deleted (deactivated) successfully." });
+            return image != null
+                ? $"data:image/jpeg;base64,{Convert.ToBase64String(image)}"
+                : null;
+        }
 
 
+
+        private string? ConvertFileToBase64(byte[]? fileBytes, string? fileExtension)
+        {
+            if (fileBytes == null || string.IsNullOrEmpty(fileExtension))
+                return null;
+
+            var mimeType = GetMimeType(fileExtension);
+            return $"data:{mimeType};base64,{Convert.ToBase64String(fileBytes)}";
         }
 
 
 
 
-        
+
+
 
 
 
