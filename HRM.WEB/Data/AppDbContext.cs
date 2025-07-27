@@ -234,6 +234,8 @@ public partial class AppDbContext : DbContext
             entity.Property(e => e.Marks).HasColumnType("numeric(18, 2)");
             entity.Property(e => e.PassingYear).HasColumnType("numeric(18, 2)");
 
+          
+
             entity.HasOne(d => d.EducationExamination).WithMany(p => p.EmployeeEducationInfos)
                 .HasForeignKey(d => new { d.IdClient, d.IdEducationExamination })
                 .OnDelete(DeleteBehavior.ClientSetNull)
@@ -270,6 +272,12 @@ public partial class AppDbContext : DbContext
             entity.Property(e => e.CurrentAddress).HasMaxLength(500);
             entity.Property(e => e.Name).HasMaxLength(50);
             entity.Property(e => e.PermanentAddress).HasMaxLength(500);
+
+            entity.HasOne(d => d.Employee).WithMany(p => p.EmployeeFamilyInfos)
+                 .HasForeignKey(d => new { d.IdClient, d.IdEmployee })
+                 .OnDelete(DeleteBehavior.ClientSetNull)
+                 .HasConstraintName("FK_EmployeeFamilyInfo_Employee");
+
 
             entity.HasOne(d => d.Gender).WithMany(p => p.EmployeeFamilyInfos)
                 .HasForeignKey(d => new { d.IdClient, d.IdGender })

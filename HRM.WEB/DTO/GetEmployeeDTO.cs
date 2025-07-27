@@ -62,5 +62,8 @@ namespace HRM.WEB.DTO
         public List<EmployeeDocumentDTO> EmployeeDocuments { get; set; } = new();
         public List<EmployeeEducationInfosDTO> EmployeeEducationInfos { get; set; } = new();
         public List<EmployeeProfessionalCertificationDTO> EmployeeProfessionalCertifications { get; set; } = new();
+
+        public List<EmployeeFamilyInfoDTO> EmployeefamilyInfos { get; set; } = new();
+
     }
 }

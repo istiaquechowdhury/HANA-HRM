@@ -95,7 +95,17 @@ namespace HRM.WEB.Controllers
                         InstituteLocation = cert.InstituteLocation,
                         FromDate = cert.FromDate,
                         ToDate = cert.ToDate
-                    }).ToList()
+                    }).ToList(),
+
+
+
+                    EmployeefamilyInfos = e.EmployeeFamilyInfos.Select(family => new EmployeeFamilyInfoDTO
+                    {
+                        Name = family.Name, 
+                        IdGender = family.IdGender, 
+                        IdRelationship = family.IdRelationship, 
+
+                    }).ToList(),    
                 })
                 .ToListAsync(cancellationToken);
 
@@ -106,7 +116,7 @@ namespace HRM.WEB.Controllers
 
 
 
-        [HttpGet("getbyid")]
+        [HttpGet("detail")]
         public async Task<ActionResult<GetEmployeeDTO>> GetEmployeeById([FromQuery] int IdClient, [FromQuery] int id,  CancellationToken cancellationToken)
         {
             var employee = await _appDbContext.Employees
@@ -183,7 +193,19 @@ namespace HRM.WEB.Controllers
                     }).ToList(),
 
                     // Reporting Manager Name from self-reference
-                    ReportingManagerName = e.ReportingManager != null ? e.ReportingManager.EmployeeName : null
+                    ReportingManagerName = e.ReportingManager != null ? e.ReportingManager.EmployeeName : null,
+
+
+                    EmployeefamilyInfos = e.EmployeeFamilyInfos.Select(family => new EmployeeFamilyInfoDTO
+                    {
+                        Name = family.Name,
+                        IdGender = family.IdGender,
+                        IdRelationship = family.IdRelationship,
+
+                    }).ToList(),    
+
+
+                   
                 })
                 .FirstOrDefaultAsync(cancellationToken);
 
@@ -320,7 +342,16 @@ namespace HRM.WEB.Controllers
                     SetDate = DateTime.Now,
                     CreatedBy = createDto.CreatedBy,
                     IdClient = cert.IdClient,
-                }).ToList()
+                }).ToList(),
+
+
+                EmployeeFamilyInfos = createDto.EmployeeFamilyInfos.Select(family => new EmployeeFamilyInfo
+                {
+                    Name = family.Name,
+                    IdGender = family.IdGender,
+                    IdRelationship = family.IdRelationship,
+
+                }).ToList(),
 
 
 
@@ -360,6 +391,7 @@ namespace HRM.WEB.Controllers
                 .Include(e => e.EmployeeDocuments)
                 .Include(e => e.EmployeeEducationInfos)
                 .Include(e => e.EmployeeProfessionalCertifications)
+                .Include(e => e.EmployeeFamilyInfos)
                 .FirstOrDefaultAsync(e => e.IdClient == idClient && e.Id == id, cancellationToken);
 
             if (existingEmployee == null) return 0;
@@ -416,6 +448,15 @@ namespace HRM.WEB.Controllers
             if (deletedCertificationList.Any())
             {
                 _appDbContext.EmployeeProfessionalCertifications.RemoveRange(deletedCertificationList);
+            }
+
+            var deletedfamilyInfoList = existingEmployee.EmployeeFamilyInfos
+               .Where(epc => epc.IdClient == idClient && !employee.FamilyInfos.Any(c => c.IdClient == epc.IdClient && c.Id == epc.Id))
+               .ToList();
+
+            if (deletedfamilyInfoList.Any())
+            {
+                _appDbContext.EmployeeFamilyInfos.RemoveRange(deletedfamilyInfoList);
             }
 
 
@@ -542,6 +583,41 @@ namespace HRM.WEB.Controllers
                     existingEmployee.EmployeeProfessionalCertifications.Add(newCertification);
                 }
             }
+
+            foreach (var item in employee.FamilyInfos)
+            {
+                var existingEntry = existingEmployee.EmployeeFamilyInfos.FirstOrDefault(ei => ei.IdClient == item.IdClient && ei.Id == item.Id);
+                if (existingEntry != null)
+                {
+                    existingEntry.Name = item.Name;
+                    existingEntry.IdGender = item.IdGender;
+                    existingEntry.IdRelationship = item.IdRelationship;
+                    existingEntry.SetDate = DateTime.Now;
+
+
+                }
+                else
+                {
+                    var familyinfos = new EmployeeFamilyInfo 
+                    {
+                        IdClient = item.IdClient,
+                        IdEmployee = existingEmployee.Id,
+                        Name = item.Name,
+                        IdGender = item.IdGender,
+                        IdRelationship = item.IdRelationship,
+
+                        SetDate = DateTime.Now
+                    };
+                    existingEmployee.EmployeeFamilyInfos.Add(familyinfos);
+                }
+            }
+
+
+
+
+
+
+
 
             var result = await _appDbContext.SaveChangesAsync(cancellationToken);
 

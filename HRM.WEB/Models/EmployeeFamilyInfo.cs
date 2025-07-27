@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-
-namespace HRM.WEB.Models;
+﻿namespace HRM.WEB.Models;
 
 public partial class EmployeeFamilyInfo
 {
@@ -32,4 +29,6 @@ public partial class EmployeeFamilyInfo
     public virtual Gender Gender { get; set; } = null!;
 
     public virtual Relationship Relationship { get; set; } = null!;
+
+    public virtual Employee Employee { get; set; } = null!;
 }

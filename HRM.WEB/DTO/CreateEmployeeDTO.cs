@@ -39,6 +39,12 @@ namespace HRM.WEB.DTO
         public List<EmployeeProfessionalCertificationDTO> ProfessionalCertification { get; set; } = new();
 
 
+        public List<EmployeeFamilyInfoDTO> EmployeeFamilyInfos { get; set; } = new();
+
+
+
+
+
 
 
 

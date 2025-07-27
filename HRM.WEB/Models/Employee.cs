@@ -68,6 +68,8 @@ public partial class Employee
 
     public virtual ICollection<EmployeeProfessionalCertification> EmployeeProfessionalCertifications { get; set; } = new List<EmployeeProfessionalCertification>();
 
+    public virtual ICollection<EmployeeFamilyInfo> EmployeeFamilyInfos { get; set; } = new List<EmployeeFamilyInfo>();
+
     public virtual EmployeeType? EmployeeType { get; set; }
 
     public virtual Gender? Gender { get; set; }
