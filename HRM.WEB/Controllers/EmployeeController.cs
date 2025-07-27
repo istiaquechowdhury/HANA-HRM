@@ -106,8 +106,8 @@ namespace HRM.WEB.Controllers
 
 
 
-        [HttpGet]
-        public async Task<ActionResult<GetEmployeeDTO>> GetEmployeeById([FromQuery] int id, [FromQuery] int IdClient, CancellationToken cancellationToken)
+        [HttpGet("getbyid")]
+        public async Task<ActionResult<GetEmployeeDTO>> GetEmployeeById([FromQuery] int IdClient, [FromQuery] int id,  CancellationToken cancellationToken)
         {
             var employee = await _appDbContext.Employees
                 .AsNoTracking()
@@ -351,6 +351,8 @@ namespace HRM.WEB.Controllers
             if (employee == null)
                 throw new Exception($"data not found: {nameof(employee)}");
 
+            const long maxFileSize = 10 * 1024 * 1024;
+
             var idClient = employee.IdClient;
             var id = employee.Id;
 
@@ -378,6 +380,10 @@ namespace HRM.WEB.Controllers
 
             if (employee.EmployeeImage != null && employee.EmployeeImage.Length > 0)
             {
+
+                if (employee.EmployeeImage.Length > maxFileSize)
+                    throw new Exception("Employee image size cannot exceed 10 MB.");
+
                 using var ms = new MemoryStream();
                 await employee.EmployeeImage.CopyToAsync(ms, cancellationToken);
                 existingEmployee.EmployeeImage = ms.ToArray();
@@ -387,7 +393,7 @@ namespace HRM.WEB.Controllers
             //delete obsolete data
 
             var deletedEmployeeDocumentList = existingEmployee.EmployeeDocuments
-                .Where(ed => !employee.Documents.Any(d => d.IdClient == ed.IdClient && d.Id == ed.Id))
+                .Where(ed => ed.IdClient == idClient && !employee.Documents.Any(d => d.IdClient == ed.IdClient && d.Id == ed.Id))
                 .ToList();
 
             if (deletedEmployeeDocumentList.Any())
@@ -396,7 +402,7 @@ namespace HRM.WEB.Controllers
             }
 
             var deletedEmployeeEducationInfoList = existingEmployee.EmployeeEducationInfos
-                .Where(eei =>!employee.EducationInfos.Any(ei => ei.IdClient == eei.IdClient && ei.Id == eei.Id))
+                .Where(eei => eei.IdClient == idClient && !employee.EducationInfos.Any(ei => ei.IdClient == eei.IdClient && ei.Id == eei.Id))
                 .ToList();
             if (deletedEmployeeEducationInfoList.Any())
             {
@@ -404,7 +410,7 @@ namespace HRM.WEB.Controllers
             }
 
             var deletedCertificationList = existingEmployee.EmployeeProfessionalCertifications
-                .Where(epc =>!employee.ProfessionalCertifications.Any(c => c.IdClient == epc.IdClient && c.Id == epc.Id))
+                .Where(epc =>epc.IdClient == idClient && !employee.ProfessionalCertifications.Any(c => c.IdClient == epc.IdClient && c.Id == epc.Id))
                 .ToList();
 
             if (deletedCertificationList.Any())
@@ -427,6 +433,9 @@ namespace HRM.WEB.Controllers
 
                     if (item.UploadedFile != null && item.UploadedFile.Length > 0)
                     {
+                        if (item.UploadedFile.Length > maxFileSize)
+                            throw new Exception($"Document '{item.FileName}' exceeds the 10 MB size limit."); // 🔽 Validation
+
                         using var ms = new MemoryStream();
                         await item.UploadedFile.CopyToAsync(ms, cancellationToken);
                         existingEntry.UploadedFile = ms.ToArray();
@@ -449,6 +458,9 @@ namespace HRM.WEB.Controllers
 
                     if (item.UploadedFile != null && item.UploadedFile.Length > 0)
                     {
+                        if (item.UploadedFile.Length > maxFileSize)
+                            throw new Exception($"Document '{item.FileName}' exceeds the 10 MB size limit."); // 🔽 Validation
+
                         using var ms = new MemoryStream();
                         await item.UploadedFile.CopyToAsync(ms, cancellationToken);
                         newEmployeeDocument.UploadedFile = ms.ToArray();
@@ -577,7 +589,7 @@ namespace HRM.WEB.Controllers
             };
         }
 
-        private string? ConvertImageToBase64(byte[]? image)
+        private static string? ConvertImageToBase64(byte[]? image)
         {
             return image != null
                 ? $"data:image/jpeg;base64,{Convert.ToBase64String(image)}"
@@ -586,7 +598,7 @@ namespace HRM.WEB.Controllers
 
 
 
-        private string? ConvertFileToBase64(byte[]? fileBytes, string? fileExtension)
+        private static string? ConvertFileToBase64(byte[]? fileBytes, string? fileExtension)
         {
             if (fileBytes == null || string.IsNullOrEmpty(fileExtension))
                 return null;
