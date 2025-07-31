@@ -5,7 +5,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace HRM.WEB.Controllers
 {
-    [Route("api/baseentities")]
+    [Route("api/dropdowns")]
     [ApiController]
     public class BaseEntitiesController(AppDbContext appDbContext) : ControllerBase
     {
@@ -181,6 +181,24 @@ namespace HRM.WEB.Controllers
 
             return Ok(statuses);
         }
+
+
+
+        [HttpGet("relationshipsdropdown")]
+        public async Task<ActionResult<IEnumerable<BaseDropdownDto>>> GetRelationships([FromQuery] int IdClient)
+        {
+            var statuses = await appDbContext.Relationships
+                .Where(m => m.IdClient == IdClient)
+                .Select(m => new BaseDropdownDto
+                {
+                    Id = m.Id,
+                    Text = m.RelationName
+                })
+                .ToListAsync();
+
+            return Ok(statuses);
+        }
+
 
 
 

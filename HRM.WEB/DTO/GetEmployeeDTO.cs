@@ -27,6 +27,7 @@ namespace HRM.WEB.DTO
 
         public int IdSection { get; set; }
         public string? SectionName { get; set; }
+       
 
         public int? IdDesignation { get; set; }
         public string? DesignationName { get; set; }
