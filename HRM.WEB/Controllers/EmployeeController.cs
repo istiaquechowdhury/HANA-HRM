@@ -2,8 +2,11 @@
 using HRM.WEB.Data;
 using HRM.WEB.DTO;
 using HRM.WEB.Models;
+using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Newtonsoft.Json;
+using System.Net;
 
 namespace HRM.WEB.Controllers
 {
@@ -18,7 +21,7 @@ namespace HRM.WEB.Controllers
         [HttpGet]
         public async Task<ActionResult<IEnumerable<GetEmployeeDTO>>> GetAllEmployees([FromQuery] int IdClient, CancellationToken cancellationToken)
         {
-            var employees = await _appDbContext.Employees
+           var employees = await _appDbContext.Employees
                 .AsNoTracking()
                 .Where(e => e.IdClient == IdClient && e.IsActive == true)
                 .Select(e => new GetEmployeeDTO
@@ -160,6 +163,7 @@ namespace HRM.WEB.Controllers
                     {
                         DocumentName = doc.DocumentName,
                         FileName = doc.FileName,
+                        UploadDate = doc.UploadDate,
                         UploadedFileExtention = doc.UploadedFileExtention,
                         UploadedFileBase64 = ConvertFileToBase64(doc.UploadedFile, doc.UploadedFileExtention),
 
@@ -201,6 +205,10 @@ namespace HRM.WEB.Controllers
                         Name = family.Name,
                         IdGender = family.IdGender,
                         IdRelationship = family.IdRelationship,
+                        DateOfBirth = family.DateOfBirth,
+                        ContactNo = family.ContactNo,
+                        CurrentAddress = family.CurrentAddress,
+                        PermanentAddress = family.PermanentAddress,
 
                     }).ToList(),    
 
@@ -230,14 +238,34 @@ namespace HRM.WEB.Controllers
 
         public async Task<ActionResult<Employee>> CreateEmployee([FromForm] CreateEmployeeDTO createDto, CancellationToken cancellationToken)
         {
+            var form = await Request.ReadFormAsync();
 
-            const long maxFileSize = 10 * 1024 * 1024; 
+            if (form.TryGetValue("employeeEducationInfos", out var educationJson))
+            {
+                createDto.employeeEducationInfos = JsonConvert.DeserializeObject<List<EmployeeEducationInfosDTO>>(educationJson) ?? new List<EmployeeEducationInfosDTO>();
+            }
+            if (form.TryGetValue("employeeFamilyInfo", out var familyJson))
+            {
+                createDto.employeeFamilyInfo = JsonConvert.DeserializeObject<List<EmployeeFamilyInfoDTO>>(familyJson) ?? new List<EmployeeFamilyInfoDTO>();
+            }
+            if (form.TryGetValue("employeeDocument", out var documentJson))
+            {
+                createDto.employeeDocument = JsonConvert.DeserializeObject<List<EmployeeDocumentDTO>>(documentJson) ?? new List<EmployeeDocumentDTO>();
+            }
+            if (form.TryGetValue("employeeProfessionalCertification", out var certificationJson))
+            {
+                createDto.employeeProfessionalCertification = JsonConvert.DeserializeObject<List<EmployeeProfessionalCertificationDTO>>(certificationJson) ?? new List<EmployeeProfessionalCertificationDTO>();
+            }
+            const long maxFileSize = 10 * 1024 * 1024;
 
-            // Validate EmployeeImage size
+            //Validate EmployeeImage size
             if (createDto.EmployeeImage != null && createDto.EmployeeImage.Length > maxFileSize)
             {
                 return BadRequest("Employee image size cannot be greater than 10 MB.");
             }
+
+
+           
             // Convert Employee image to byte[]
             byte[]? employeeImageBytes = null;
             if (createDto.EmployeeImage != null && createDto.EmployeeImage.Length > 0)
@@ -247,8 +275,8 @@ namespace HRM.WEB.Controllers
                 employeeImageBytes = ms.ToArray();
             }
 
-            // Convert document files to byte[]
-            foreach (var doc in createDto.Documents)
+            //Convert document files to byte[]
+            foreach (var doc in createDto.employeeDocument)
             {
                 if (doc.UploadedFile != null)
                 {
@@ -300,12 +328,13 @@ namespace HRM.WEB.Controllers
                 SetDate = DateTime.Now,
                 IdClient = createDto.IdClient,
 
-                EmployeeDocuments = createDto.Documents.Select(doc => new EmployeeDocument
+                EmployeeDocuments = createDto.employeeDocument.Select(doc => new EmployeeDocument
                 {
                     DocumentName = doc.DocumentName,
                     FileName = doc.FileName,
                     UploadedFileExtention = doc.UploadedFileExtention,
                     UploadedFile = doc.UploadedFileBytes,
+                    UploadDate = doc.UploadDate,
                     SetDate = DateTime.Now,
                     CreatedBy = createDto.CreatedBy,
                     IdClient = doc.IdClient,
@@ -313,7 +342,7 @@ namespace HRM.WEB.Controllers
 
 
 
-                EmployeeEducationInfos = createDto.EducationInfos.Select(edu => new EmployeeEducationInfo
+                EmployeeEducationInfos = createDto.employeeEducationInfos.Select(edu => new EmployeeEducationInfo
                 {
                     IdEducationLevel = edu.IdEducationLevel,
                     IdEducationExamination = edu.IdEducationExamination,
@@ -332,7 +361,7 @@ namespace HRM.WEB.Controllers
                     IdClient = edu.IdClient,
                 }).ToList(),
 
-                EmployeeProfessionalCertifications = createDto.ProfessionalCertification.Select(cert => new EmployeeProfessionalCertification
+                EmployeeProfessionalCertifications = createDto.employeeProfessionalCertification.Select(cert => new EmployeeProfessionalCertification
                 {
                     CertificationTitle = cert.CertificationTitle,
                     CertificationInstitute = cert.CertificationInstitute,
@@ -345,11 +374,15 @@ namespace HRM.WEB.Controllers
                 }).ToList(),
 
 
-                EmployeeFamilyInfos = createDto.EmployeeFamilyInfos.Select(family => new EmployeeFamilyInfo
+                EmployeeFamilyInfos = createDto.employeeFamilyInfo.Select(family => new EmployeeFamilyInfo
                 {
                     Name = family.Name,
                     IdGender = family.IdGender,
                     IdRelationship = family.IdRelationship,
+                    DateOfBirth = family.DateOfBirth,
+                    ContactNo = family.ContactNo,
+                    CurrentAddress = family.CurrentAddress,
+                    PermanentAddress = family.PermanentAddress,
 
                 }).ToList(),
 
@@ -379,6 +412,26 @@ namespace HRM.WEB.Controllers
 
         public async Task<int> UpdateEmployee([FromForm] UpdateEmployeeDto employee, CancellationToken cancellationToken)
         {
+
+            var form = await Request.ReadFormAsync();
+
+            if (form.TryGetValue("employeeEducationInfos", out var educationJson))
+            {
+                employee.employeeEducationInfos = JsonConvert.DeserializeObject<List<EmployeeEducationInfosDTO>>(educationJson) ?? new List<EmployeeEducationInfosDTO>();
+            }
+            if (form.TryGetValue("employeeFamilyInfo", out var familyJson))
+            {
+                employee.employeeFamilyInfo = JsonConvert.DeserializeObject<List<EmployeeFamilyInfoDTO>>(familyJson) ?? new List<EmployeeFamilyInfoDTO>();
+            }
+            if (form.TryGetValue("employeeDocument", out var documentJson))
+            {
+                employee.employeeDocument = JsonConvert.DeserializeObject<List<EmployeeDocumentDTO>>(documentJson) ?? new List<EmployeeDocumentDTO>();
+            }
+            if (form.TryGetValue("employeeProfessionalCertification", out var certificationJson))
+            {
+                employee.employeeProfessionalCertification = JsonConvert.DeserializeObject<List<EmployeeProfessionalCertificationDTO>>(certificationJson) ?? new List<EmployeeProfessionalCertificationDTO>();
+            }
+
             if (employee == null)
                 throw new Exception($"data not found: {nameof(employee)}");
 
@@ -400,14 +453,39 @@ namespace HRM.WEB.Controllers
             existingEmployee.EmployeeNameBangla = employee.EmployeeNameBangla ?? existingEmployee.EmployeeNameBangla;
             existingEmployee.FatherName = employee.FatherName ?? existingEmployee.FatherName;
             existingEmployee.MotherName = employee.MotherName ?? existingEmployee.MotherName;
+            existingEmployee.BirthDate = employee.BirthDate ?? existingEmployee.BirthDate;
+            existingEmployee.JoiningDate = employee.JoiningDate ?? existingEmployee.JoiningDate;
+            existingEmployee.ContactNo = employee.ContactNo ?? existingEmployee.ContactNo;
+            existingEmployee.NationalIdentificationNumber = employee.NationalIdentificationNumber ?? existingEmployee.NationalIdentificationNumber;
+            existingEmployee.Address = employee.Address ?? existingEmployee.Address;
+            
+            existingEmployee.PresentAddress = employee.PresentAddress ?? existingEmployee.PresentAddress;
+            existingEmployee.HasOvertime = employee.HasOvertime ?? existingEmployee.HasOvertime;
+            existingEmployee.HasAttendenceBonus = employee.HasAttendenceBonus ?? existingEmployee.HasAttendenceBonus;
+            existingEmployee.IsActive = employee.IsActive ?? existingEmployee.IsActive;
+
             existingEmployee.IdDepartment = employee.IdDepartment;
             existingEmployee.IdSection = employee.IdSection;
-            existingEmployee.BirthDate = employee.BirthDate ?? existingEmployee.BirthDate;
-            existingEmployee.Address = employee.Address ?? existingEmployee.Address;
-            existingEmployee.PresentAddress = employee.PresentAddress ?? existingEmployee.PresentAddress;
-            existingEmployee.NationalIdentificationNumber = employee.NationalIdentificationNumber ?? existingEmployee.NationalIdentificationNumber;
-            existingEmployee.ContactNo = employee.ContactNo ?? existingEmployee.ContactNo;
-            existingEmployee.IsActive = employee.IsActive ?? existingEmployee.IsActive;
+            existingEmployee.IdDesignation = employee.IdDesignation ?? employee.IdDesignation;
+
+            existingEmployee.IdEmployeeType = employee.IdEmployeeType ?? employee.IdEmployeeType;
+
+            existingEmployee.IdJobType = employee.IdJobType ?? employee.IdJobType;
+
+            existingEmployee.IdGender = employee.IdGender ?? employee.IdGender;
+
+            existingEmployee.IdReligion = employee.IdReligion ?? employee.IdReligion;
+            existingEmployee.IdMaritalStatus = employee.IdMaritalStatus ?? employee.IdMaritalStatus;
+
+            existingEmployee.IdWeekOff = employee.IdWeekOff ?? employee.IdWeekOff;
+
+            existingEmployee.IdReportingManager = employee.IdReportingManager ?? employee.IdReportingManager;
+
+            existingEmployee.CreatedBy = employee.CreatedBy;
+
+
+
+
             existingEmployee.SetDate = DateTime.Now;
 
             if (employee.EmployeeImage != null && employee.EmployeeImage.Length > 0)
@@ -425,7 +503,7 @@ namespace HRM.WEB.Controllers
             //delete obsolete data
 
             var deletedEmployeeDocumentList = existingEmployee.EmployeeDocuments
-                .Where(ed => ed.IdClient == idClient && !employee.Documents.Any(d => d.IdClient == ed.IdClient && d.Id == ed.Id))
+                .Where(ed => ed.IdClient == idClient && !employee.employeeDocument.Any(d => d.IdClient == ed.IdClient && d.Id == ed.Id))
                 .ToList();
 
             if (deletedEmployeeDocumentList.Any())
@@ -434,7 +512,7 @@ namespace HRM.WEB.Controllers
             }
 
             var deletedEmployeeEducationInfoList = existingEmployee.EmployeeEducationInfos
-                .Where(eei => eei.IdClient == idClient && !employee.EducationInfos.Any(ei => ei.IdClient == eei.IdClient && ei.Id == eei.Id))
+                .Where(eei => eei.IdClient == idClient && !employee.employeeEducationInfos.Any(ei => ei.IdClient == eei.IdClient && ei.Id == eei.Id))
                 .ToList();
             if (deletedEmployeeEducationInfoList.Any())
             {
@@ -442,7 +520,7 @@ namespace HRM.WEB.Controllers
             }
 
             var deletedCertificationList = existingEmployee.EmployeeProfessionalCertifications
-                .Where(epc =>epc.IdClient == idClient && !employee.ProfessionalCertifications.Any(c => c.IdClient == epc.IdClient && c.Id == epc.Id))
+                .Where(epc =>epc.IdClient == idClient && !employee.employeeProfessionalCertification.Any(c => c.IdClient == epc.IdClient && c.Id == epc.Id))
                 .ToList();
 
             if (deletedCertificationList.Any())
@@ -451,7 +529,7 @@ namespace HRM.WEB.Controllers
             }
 
             var deletedfamilyInfoList = existingEmployee.EmployeeFamilyInfos
-               .Where(epc => epc.IdClient == idClient && !employee.FamilyInfos.Any(c => c.IdClient == epc.IdClient && c.Id == epc.Id))
+               .Where(epc => epc.IdClient == idClient && !employee.employeeFamilyInfo.Any(c => c.IdClient == epc.IdClient && c.Id == epc.Id))
                .ToList();
 
             if (deletedfamilyInfoList.Any())
@@ -461,7 +539,7 @@ namespace HRM.WEB.Controllers
 
 
             //up/insert information
-            foreach (var item in employee.Documents)
+            foreach (var item in employee.employeeDocument)
             {
                 var existingEntry = existingEmployee.EmployeeDocuments.FirstOrDefault(ed => ed.IdClient == item.IdClient && ed.Id == item.Id);
                 if (existingEntry != null)
@@ -512,7 +590,7 @@ namespace HRM.WEB.Controllers
             }
 
 
-            foreach (var item in employee.EducationInfos)
+            foreach (var item in employee.employeeEducationInfos)
             {
                 var existingEntry = existingEmployee.EmployeeEducationInfos.FirstOrDefault(ei => ei.IdClient == item.IdClient && ei.Id == item.Id);
                 if (existingEntry != null)
@@ -555,7 +633,7 @@ namespace HRM.WEB.Controllers
             }
 
 
-            foreach (var item in employee.ProfessionalCertifications)
+            foreach (var item in employee.employeeProfessionalCertification)
             {
                 var existingEntry = existingEmployee.EmployeeProfessionalCertifications.FirstOrDefault(ei => ei.IdClient == item.IdClient && ei.Id == item.Id);
                 if (existingEntry != null)
@@ -584,7 +662,7 @@ namespace HRM.WEB.Controllers
                 }
             }
 
-            foreach (var item in employee.FamilyInfos)
+            foreach (var item in employee.employeeFamilyInfo)
             {
                 var existingEntry = existingEmployee.EmployeeFamilyInfos.FirstOrDefault(ei => ei.IdClient == item.IdClient && ei.Id == item.Id);
                 if (existingEntry != null)
@@ -605,7 +683,7 @@ namespace HRM.WEB.Controllers
                         Name = item.Name,
                         IdGender = item.IdGender,
                         IdRelationship = item.IdRelationship,
-
+                        DateOfBirth = item.DateOfBirth,
                         SetDate = DateTime.Now
                     };
                     existingEmployee.EmployeeFamilyInfos.Add(familyinfos);
@@ -665,13 +743,19 @@ namespace HRM.WEB.Controllers
             };
         }
 
+        //private static string? ConvertImageToBase64(byte[]? image)
+        //{
+        //    return image != null
+        //        ? $"data:image/jpeg;base64,{Convert.ToBase64String(image)}"
+        //        : null;
+        //}
+
         private static string? ConvertImageToBase64(byte[]? image)
         {
             return image != null
-                ? $"data:image/jpeg;base64,{Convert.ToBase64String(image)}"
+                ? Convert.ToBase64String(image)
                 : null;
         }
-
 
 
         private static string? ConvertFileToBase64(byte[]? fileBytes, string? fileExtension)

@@ -32,15 +32,10 @@ namespace HRM.WEB.DTO
         public bool? IsActive { get; set; }
         public string? CreatedBy { get; set; }
 
-        public List<EmployeeDocumentDTO> Documents { get; set; } = new();
-
-        public List<EmployeeEducationInfosDTO> EducationInfos { get; set;} = new();
-
-        public List<EmployeeProfessionalCertificationDTO> ProfessionalCertification { get; set; } = new();
-
-
-        public List<EmployeeFamilyInfoDTO> EmployeeFamilyInfos { get; set; } = new();
-
+        public List<EmployeeEducationInfosDTO> employeeEducationInfos { get; set; } = new();
+        public List<EmployeeFamilyInfoDTO> employeeFamilyInfo { get; set; } = new();
+        public List<EmployeeDocumentDTO> employeeDocument { get; set; } = new();
+        public List<EmployeeProfessionalCertificationDTO> employeeProfessionalCertification { get; set; } = new();
 
 
 

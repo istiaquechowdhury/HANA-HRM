@@ -187,7 +187,7 @@ namespace HRM.WEB.Controllers
         [HttpGet("relationshipsdropdown")]
         public async Task<ActionResult<IEnumerable<BaseDropdownDto>>> GetRelationships([FromQuery] int IdClient)
         {
-            var statuses = await appDbContext.Relationships
+            var relationships = await appDbContext.Relationships
                 .Where(m => m.IdClient == IdClient)
                 .Select(m => new BaseDropdownDto
                 {
@@ -196,8 +196,62 @@ namespace HRM.WEB.Controllers
                 })
                 .ToListAsync();
 
-            return Ok(statuses);
+            return Ok(relationships);
         }
+
+
+
+
+        [HttpGet("educationleveldropdown")]
+        public async Task<ActionResult<IEnumerable<BaseDropdownDto>>> GetEducationLevels([FromQuery] int IdClient)
+        {
+            var educationlevels = await appDbContext.EducationLevels
+                .Where(m => m.IdClient == IdClient)
+                .Select(m => new BaseDropdownDto
+                {
+                    Id = m.Id,
+                    Text = m.EducationLevelName
+                })
+                .ToListAsync();
+
+            return Ok(educationlevels);
+        }
+
+
+        [HttpGet("educationexaminationdropdown")]
+        public async Task<ActionResult<IEnumerable<BaseDropdownDto>>> GetEducationExaminations([FromQuery] int IdClient)
+        {
+            var educationexaminations = await appDbContext.EducationExaminations
+                .Where(m => m.IdClient == IdClient)
+                .Select(m => new BaseDropdownDto
+                {
+                    Id = m.Id,
+                    Text = m.ExamName
+                })
+                .ToListAsync();
+
+            return Ok(educationexaminations);
+        }
+
+
+
+
+        [HttpGet("educationresultdropdown")]
+        public async Task<ActionResult<IEnumerable<BaseDropdownDto>>> GerEducationResults([FromQuery] int IdClient)
+        {
+            var educationresults = await appDbContext.EducationResults
+                .Where(m => m.IdClient == IdClient)
+                .Select(m => new BaseDropdownDto
+                {
+                    Id = m.Id,
+                    Text = m.ResultName
+                })
+                .ToListAsync();
+
+            return Ok(educationresults);
+        }
+
+
 
 
 

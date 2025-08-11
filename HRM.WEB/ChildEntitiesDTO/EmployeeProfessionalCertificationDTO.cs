@@ -4,7 +4,7 @@
     {
         public int IdClient { get; set; }
 
-        public int Id { get; set; }
+        public int? Id { get; set; }
         public string CertificationTitle { get; set; } = null!;
         public string CertificationInstitute { get; set; } = null!;
         public string InstituteLocation { get; set; } = null!;
